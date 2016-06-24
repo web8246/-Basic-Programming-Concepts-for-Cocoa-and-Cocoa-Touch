@@ -98,6 +98,65 @@ You are not responsible for releasing the objects returned from factory methods.
 
 Each object returned—aChar, anInt, aFloat, and aDouble—may belong to a different private subclass (and in fact does). Although each object’s class membership is hidden, its interface is public, being the interface declared by the abstract superclass, NSNumber. Although it is not precisely correct, it’s convenient to consider the aChar, anInt, aFloat, and aDouble objects to be instances of the NSNumber class, because they’re created by NSNumber class methods and accessed through instance methods declared by NSNumber.
 
+</br>
+####創建物件
+####&emsp;&emsp;這樣子做的父類別，必須要宣告物件方法，來讓user可以創建屬於它的這些子類別的物件方法，這是啥意思呢？
+
+####&emsp;&emsp;記得嗎？在Foundation framework我們一般來說，如果要新建立某個類別物件，可能是用+className的某個方法來創建物件，或是常用的alloc... and init...，舉個NSNumber來當例子，我們可能會用下面這些方式來創建新的nsnumber物件：
+    NSNumber *aChar = [NSNumber numberWithChar:’a’];
+    NSNumber *anInt = [NSNumber numberWithInt:1];
+    NSNumber *aFloat = [NSNumber numberWithFloat:1.0];
+    NSNumber *aDouble = [NSNumber numberWithDouble:1.0];
+    
+####&emsp;&emsp;上面看到的這些物件（aChar, anInt, aFloat, aDouble）他們其實分別屬於nsnumber的各自的私有類別，例如int，float，等等，雖然每一個物件，對於他們真正所屬的類別對於user來說是隱藏的，因為他們是經由父類別nsnumber給創建出來的，但是這麼說，並不完全正確，因為他們真的就如字面上所說的，是真的nsnumber類別給創建出來的。
+
+</br>
+</br>
+>Class Clusters with Multiple Public Superclasses
+
+In the example above, one abstract public class declares the interface for multiple private subclasses. This is a class cluster in the purest sense. It’s also possible, and often desirable, to have two (or possibly more) abstract public classes that declare the interface for the cluster. This is evident in the Foundation framework, which includes the clusters listed in Table 1-1
+
+####&emsp;&emsp; Multiple的類別集合
+####&emsp;&emsp;上面的例子是一個公開的父類別對應多個私有類別，這是最單純化的作法了，但是常常，我們可以看到，會有兩個甚至是更多的公開的父類別如下表:
+
+|Class cluster    |Public superclasses|
+| -------------   |:-----------------:|
+|  NSData         |NSData             |
+|                 |NSMutableData      |
+|NSArray          |NSArray            | 
+|                 |NSMutableArray     |
+|NSDictionary     |NSDictionary       |
+|                 |NSMutableDictionary|
+|NSString         |NSString           |
+|                 |NSMutableString    |
+
+Other clusters of this type also exist, but these clearly illustrate how two abstract nodes cooperate in declaring the programmatic interface to a class cluster. In each of these clusters, one public node declares methods that all cluster objects can respond to, and the other node declares methods that are only appropriate for cluster objects that allow their contents to be modified.
+
+This factoring of the cluster’s interface helps make an object-oriented framework’s programmatic interface more expressive. For example, imagine an object representing a book that declares this method:
+
+####&emsp;&emsp;當然，如同上表的其他類似的類別，還是有的，上表就只是讓我們了解這種概念，一個類別它的方法，可以被所有的在他節點上的公開的類別的物件給使用，(想一想NSArray&NSMutableArray)，而另外一個點上面的類別物件的方法，則只能被這個類別使用(這裡是指像nsmutablearray)。
+
+####&emsp;&emsp;這樣做可以讓物件導向更加的豐富，想像一下，如果今天我創建了一個類別物件叫做"書"，它有個物件方法：
+    - (NSString *)title;
+ The book object could return its own instance variable or create a new string object and return that—it doesn’t matter. It’s clear from this declaration that the returned string can’t be modified. Any attempt to modify the returned object will elicit a compiler warning.
+####&emsp;&emsp;這個"書"物件，它可以用上面的方法得到title，不論他是用物件方法，或是再生成一個新的string，但是重點是，不論如何，經過這樣宣告出來的string，是無法變更的，一旦變更，會報錯！
+
+</br>
+>Creating Subclasses Within a Class Cluster
+
+The class cluster architecture involves a trade-off between simplicity and extensibility: Having a few public classes stand in for a multitude of private ones makes it easier to learn and use the classes in a framework but somewhat harder to create subclasses within any of the clusters. However, if it’s rarely necessary to create a subclass, then the cluster architecture is clearly beneficial. Clusters are used in the Foundation framework in just these situations.
+
+If you find that a cluster doesn’t provide the functionality your program needs, then a subclass may be in order. For example, imagine that you want to create an array object whose storage is file-based rather than memory-based, as in the NSArray class cluster. Because you are changing the underlying storage mechanism of the class, you’d have to create a subclass.
+
+On the other hand, in some cases it might be sufficient (and easier) to define a class that embeds within it an object from the cluster. Let’s say that your program needs to be alerted whenever some data is modified. In this case, creating a simple class that wraps a data object that the Foundation framework defines may be the best approach. An object of this class could intervene in messages that modify the data, intercepting the messages, acting on them, and then forwarding them to the embedded data object.
+
+In summary, if you need to manage your object’s storage, create a true subclass. Otherwise, create a composite object, one that embeds a standard Foundation framework object in an object of your own design. The following sections give more detail on these two approaches.
+
+
+ 
+
+
+
 
 
 
